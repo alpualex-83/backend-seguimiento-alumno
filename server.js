@@ -16,6 +16,10 @@ app.use((req, res, next) => {
   next();
 });
 
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error("Falta OPENAI_API_KEY en variables de entorno.");
+}
+
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -34,55 +38,142 @@ const limpiarInforme = (texto) => {
     .trim();
 };
 
-const construirTextoParaIA = (datos) => {
-  let texto = `Alumno: ${datos.nombre}
-Trimestre: ${datos.trimestre}
-Estilo de informe: ${datos.estiloInforme}
+const asegurarTexto = (valor) => String(valor || "").trim();
 
+const asegurarArray = (valor) => (Array.isArray(valor) ? valor : []);
+
+const hayTextoUtil = (valor) => asegurarTexto(valor).length > 0;
+
+const crearErrorRespuesta = (res, status, mensaje) => {
+  return res.status(status).json({
+    ok: false,
+    error: mensaje,
+  });
+};
+
+const construirTextoParaIA = (datos) => {
+  const nombre = asegurarTexto(datos?.nombre);
+  const apellidos = asegurarTexto(datos?.apellidos);
+  const nombreCompleto =
+    asegurarTexto(datos?.nombreCompleto) ||
+    [nombre, apellidos].filter(Boolean).join(" ").trim();
+
+  const genero = asegurarTexto(datos?.genero);
+  const fechaNacimiento = asegurarTexto(datos?.fechaNacimiento);
+  const cursoAula = asegurarTexto(datos?.cursoAula);
+  const observacionesGenerales = asegurarTexto(datos?.observacionesGenerales);
+  const observacionesFamilia = asegurarTexto(datos?.observacionesFamilia);
+  const trimestre = asegurarTexto(datos?.trimestre);
+  const estiloInforme = asegurarTexto(datos?.estiloInforme);
+
+  let texto = `Alumno: ${nombre}
+Nombre completo: ${nombreCompleto}
+Género: ${genero}
+Fecha de nacimiento: ${fechaNacimiento || "No indicada"}
+Curso / aula: ${cursoAula || "No indicado"}
+Trimestre: ${trimestre}
+Estilo de informe: ${estiloInforme}
 `;
 
-  datos.areas.forEach((area) => {
-    texto += `${area.nombre}:\n`;
+  if (observacionesGenerales) {
+    texto += `Observaciones generales del alumno: ${observacionesGenerales}\n`;
+  }
 
-    area.bloques.forEach((bloque) => {
-      const itemsConDatos = bloque.items.filter(
-        (item) =>
-          item.estado !== "No observado" ||
-          (item.observacion && item.observacion.trim()) ||
-          (item.anotaciones && item.anotaciones.length > 0)
-      );
+  if (observacionesFamilia) {
+    texto += `Observaciones relevantes para la familia: ${observacionesFamilia}\n`;
+  }
 
-      if (itemsConDatos.length > 0) {
-        texto += `  ${bloque.nombre}:\n`;
+  texto += `\n`;
 
-        itemsConDatos.forEach((item) => {
-          texto += `  - Ítem: ${item.texto}\n`;
-          texto += `    Estado: ${item.estado}\n`;
+  asegurarArray(datos?.areas).forEach((area) => {
+    const nombreArea = asegurarTexto(area?.nombre);
+    const bloques = asegurarArray(area?.bloques);
 
-          if (item.observacion?.trim()) {
-            texto += `    Observación: ${item.observacion}\n`;
-          }
+    if (!nombreArea || bloques.length === 0) return;
 
-          if (item.anotaciones?.length > 0) {
-            item.anotaciones.forEach((a) => {
-              texto += `    Anotación (${a.fecha}): ${a.texto}\n`;
-            });
-          }
+    texto += `${nombreArea}:\n`;
+
+    bloques.forEach((bloque) => {
+      const nombreBloque = asegurarTexto(bloque?.nombre);
+      const observacionBloque = asegurarTexto(bloque?.observacionBloque);
+      const anotacionesBloque = asegurarArray(bloque?.anotacionesBloque);
+      const items = asegurarArray(bloque?.items);
+
+      const itemsConDatos = items.filter((item) => {
+        return (
+          asegurarTexto(item?.estado) !== "No observado" ||
+          hayTextoUtil(item?.observacion) ||
+          asegurarArray(item?.anotaciones).length > 0
+        );
+      });
+
+      if (
+        itemsConDatos.length === 0 &&
+        !observacionBloque &&
+        anotacionesBloque.length === 0
+      ) {
+        return;
+      }
+
+      texto += `  ${nombreBloque}:\n`;
+
+      if (observacionBloque) {
+        texto += `    Valoración final del bloque: ${observacionBloque}\n`;
+      }
+
+      if (anotacionesBloque.length > 0) {
+        anotacionesBloque.forEach((a) => {
+          texto += `    Anotación de bloque (${asegurarTexto(a?.fecha)}): ${asegurarTexto(a?.texto)}\n`;
         });
       }
+
+      itemsConDatos.forEach((item) => {
+        texto += `  - Ítem: ${asegurarTexto(item?.texto)}\n`;
+        texto += `    Estado: ${asegurarTexto(item?.estado) || "No observado"}\n`;
+
+        if (hayTextoUtil(item?.observacion)) {
+          texto += `    Observación: ${asegurarTexto(item?.observacion)}\n`;
+        }
+
+        asegurarArray(item?.anotaciones).forEach((a) => {
+          texto += `    Anotación (${asegurarTexto(a?.fecha)}): ${asegurarTexto(a?.texto)}\n`;
+        });
+      });
     });
 
     texto += `\n`;
   });
 
-  return texto;
+  return texto.trim();
 };
 
-const asegurarTexto = (valor) => String(valor || "").trim();
+app.get("/health", (req, res) => {
+  res.json({
+    ok: true,
+    service: "backend-seguimiento-alumno",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 app.post("/generar-informe", async (req, res) => {
   try {
     const datosAlumno = req.body;
+
+    if (!datosAlumno || typeof datosAlumno !== "object") {
+      return crearErrorRespuesta(res, 400, "Datos de informe no válidos.");
+    }
+
+    if (!hayTextoUtil(datosAlumno?.nombre)) {
+      return crearErrorRespuesta(res, 400, "Falta el nombre del alumno.");
+    }
+
+    if (!hayTextoUtil(datosAlumno?.trimestre)) {
+      return crearErrorRespuesta(res, 400, "Falta el trimestre.");
+    }
+
+    if (!Array.isArray(datosAlumno?.areas)) {
+      return crearErrorRespuesta(res, 400, "Las áreas del informe no son válidas.");
+    }
 
     const promptUsuario = `
 Redacta un informe trimestral oficial de escuela infantil, con nivel de centro educativo premium.
@@ -137,7 +228,8 @@ ${construirTextoParaIA(datosAlumno)}
 
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      temperature: 0.9,
+      temperature: 0.7,
+      timeout: 45000,
       messages: [
         {
           role: "system",
@@ -197,11 +289,12 @@ El resultado debe poder copiarse directamente en un informe oficial de escuela i
       ],
     });
 
-    let informe =
-      response.choices?.[0]?.message?.content?.trim() ||
-      "No se pudo generar el informe.";
-
+    let informe = response.choices?.[0]?.message?.content?.trim() || "";
     informe = limpiarInforme(informe);
+
+    if (!informe) {
+      return crearErrorRespuesta(res, 502, "La IA no devolvió un informe válido.");
+    }
 
     console.log("INFORME LIMPIO:\n", informe);
 
@@ -232,7 +325,8 @@ app.post("/mejorar-informe", async (req, res) => {
 
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      temperature: 0.9,
+      temperature: 0.5,
+      timeout: 45000,
       messages: [
         {
           role: "system",
@@ -244,6 +338,8 @@ Tu tarea es mejorar la redacción de un informe ya existente.
 Normas obligatorias:
 - no cambies el contenido pedagógico
 - no inventes información nueva
+- no elimines datos relevantes ya presentes
+- conserva el enfoque pedagógico y el tono del texto original
 - mantén el sentido original del informe
 - mejora fluidez, elegancia y coherencia
 - elimina repeticiones
@@ -268,11 +364,16 @@ ${texto}
       ],
     });
 
-    let informe =
-      response.choices?.[0]?.message?.content?.trim() ||
-      "No se pudo mejorar el informe.";
-
+    let informe = response.choices?.[0]?.message?.content?.trim() || "";
     informe = limpiarInforme(informe);
+
+    if (!informe) {
+      return crearErrorRespuesta(
+        res,
+        502,
+        "La IA no devolvió una mejora válida del informe."
+      );
+    }
 
     res.json({ ok: true, informe });
   } catch (error) {
@@ -293,7 +394,7 @@ app.post("/exportar-docx", async (req, res) => {
     const alumno = asegurarTexto(req.body.alumno);
     const trimestre = asegurarTexto(req.body.trimestre);
     const estiloInforme = asegurarTexto(req.body.estiloInforme);
-    const texto = asegurarTexto(req.body.texto);
+    const texto = limpiarInforme(asegurarTexto(req.body.texto));
 
     if (!texto) {
       return res.status(400).json({
@@ -372,7 +473,7 @@ app.post("/exportar-pptx", async (req, res) => {
     const alumno = asegurarTexto(req.body.alumno);
     const trimestre = asegurarTexto(req.body.trimestre);
     const estiloInforme = asegurarTexto(req.body.estiloInforme);
-    const texto = asegurarTexto(req.body.texto);
+    const texto = limpiarInforme(asegurarTexto(req.body.texto));
 
     if (!texto) {
       return res.status(400).json({
@@ -389,16 +490,34 @@ app.post("/exportar-pptx", async (req, res) => {
     pptx.company = "Centro educativo";
     pptx.lang = "es-ES";
 
-    const bloques = texto
+    let bloques = texto
       .split("\n\n")
       .map((b) => b.trim())
       .filter(Boolean);
 
     if (bloques.length === 0) {
-      bloques.push(texto);
+      bloques = [texto];
     }
 
-    bloques.forEach((bloque, index) => {
+    const bloquesNormalizados = [];
+    let acumulado = "";
+
+    for (const bloque of bloques) {
+      const candidato = acumulado ? `${acumulado}\n\n${bloque}` : bloque;
+
+      if (candidato.length <= 900) {
+        acumulado = candidato;
+      } else {
+        if (acumulado) bloquesNormalizados.push(acumulado);
+        acumulado = bloque;
+      }
+    }
+
+    if (acumulado) {
+      bloquesNormalizados.push(acumulado);
+    }
+
+    bloquesNormalizados.forEach((bloque, index) => {
       const slide = pptx.addSlide();
 
       slide.addText("Informe trimestral", {
@@ -472,5 +591,5 @@ app.post("/exportar-pptx", async (req, res) => {
 const port = process.env.PORT || 3001;
 
 app.listen(port, () => {
-  console.log(`Backend escuchando en http://localhost:${port}`);
+  console.log(`Backend escuchando en puerto ${port}`);
 });
