@@ -176,109 +176,92 @@ app.post("/generar-informe", async (req, res) => {
     }
 
     const promptUsuario = `
-Redacta un informe trimestral oficial de escuela infantil, con nivel de centro educativo premium.
+Redacta un informe trimestral de escuela infantil en español de España.
 
-Debe estar escrito únicamente en párrafos fluidos y naturales.
-No uses markdown.
-No uses asteriscos.
-No uses títulos con símbolos.
-No uses listas ni viñetas.
-No uses etiquetas técnicas.
-No reproduzcas literalmente los ítems de evaluación: interprétalos y transfórmalos en redacción pedagógica real.
+Condiciones de redacción:
+- escribe solo en párrafos
+- no uses listas
+- no uses viñetas
+- no uses markdown
+- no uses asteriscos
+- no uses títulos artificiales
+- no copies literalmente los ítems curriculares
+- transforma la información en redacción pedagógica real
 
-El informe debe transmitir:
-- evolución durante el trimestre
-- avances observados
-- aspectos que continúan en proceso
-- acompañamiento educativo
-- cercanía con la familia
-- refuerzo positivo
-- autonomía progresiva
-
-Integra con naturalidad:
-- observaciones del educador
-- anotaciones con fecha
-- matices evolutivos
-- tono profesional y humano
+Objetivo del informe:
+- reflejar la evolución general del trimestre
+- destacar avances observados
+- señalar aspectos que siguen en proceso
+- integrar con naturalidad observaciones y anotaciones fechadas
+- transmitir acompañamiento educativo, autonomía progresiva y cercanía con la familia
 
 ${
   datosAlumno.historial
-    ? `Historial de evolución del alumno:
-
-Ten en cuenta la evolución del alumno entre trimestres.
-Detecta progresos, cambios de comportamiento, avances en autonomía y lenguaje.
-
-Integra esta evolución de forma natural en el informe actual, sin mencionarla explícitamente como "historial".
-
+    ? `Historial previo del alumno:
 ${datosAlumno.historial}
 
+Ten en cuenta la evolución respecto a trimestres anteriores y úsala de forma natural, sin mencionar la palabra "historial".
 `
     : ""
-}${
-      datosAlumno.modoPremium
-        ? `Modo Premium IA activado:
-redacta el informe con un nivel especialmente alto de calidad, fluidez y profundidad pedagógica.
+}
 
+${
+  datosAlumno.modoPremium
+    ? `Modo Premium activado:
+redacta con más riqueza expresiva, mejor cohesión, mayor profundidad pedagógica y un tono especialmente cuidado.
 `
-        : ""
-    }Datos del alumno:
+    : ""
+}
 
+Datos del alumno:
 ${construirTextoParaIA(datosAlumno)}
 `.trim();
 
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      temperature: 0.7,
+      temperature: 0.6,
       messages: [
         {
           role: "system",
           content: `
-Eres un educador experto en escuela infantil y redactas informes trimestrales de alta calidad para un centro educativo premium.
+Eres un educador experto en escuela infantil y redactas informes trimestrales de alta calidad profesional.
 
-El centro se caracteriza por:
-- una relación cercana con los niños y sus familias
-- una mirada respetuosa sobre el desarrollo individual
-- el refuerzo positivo como eje educativo
-- el acompañamiento de la autonomía progresiva de cada niño
-
-Tu tarea es redactar informes trimestrales con calidad profesional real.
+Características del centro:
+- relación cercana con los niños y sus familias
+- respeto al ritmo individual
+- refuerzo positivo como eje educativo
+- acompañamiento de la autonomía progresiva
 
 Normas obligatorias:
 - escribe en español de España
-- usa un tono humano, natural, elegante y profesional
-- el texto debe sonar a educador con experiencia, nunca a máquina
-- evita expresiones repetitivas y conectores forzados
+- el resultado debe sonar humano, profesional y natural
+- evita repeticiones y conectores mecánicos
 - evita frases vacías o genéricas
-- evita contradicciones pedagógicas
-- integra de forma natural las observaciones y anotaciones con fecha
-- cuando haya fechas, incorpóralas dentro del relato, con naturalidad
+- evita enumerar áreas o bloques como si fuera una ficha técnica
+- integra las anotaciones con fecha dentro del relato si aportan valor
+- no inventes información
+- no exageres logros que no estén sustentados por los datos
 - no uses markdown
-- no uses asteriscos
 - no uses listas
-- no uses viñetas
-- no uses encabezados artificiales
-- no uses títulos con símbolos
-- no pongas etiquetas como “Área 1:” o “Bloque A:”
+- no uses encabezados
 - no copies literalmente los ítems curriculares
-- interpreta pedagógicamente la información y conviértela en lenguaje de informe real
 
-Estructura del texto:
-- un primer párrafo breve de apertura sobre la evolución general del trimestre
-- varios párrafos de desarrollo, cohesionados y fluidos, integrando las distintas áreas de aprendizaje con naturalidad
-- un último párrafo de cierre con valoración global y línea de acompañamiento educativo
+Estructura deseada:
+- un párrafo inicial breve de visión global del trimestre
+- dos o más párrafos de desarrollo integrando aprendizaje, autonomía, comunicación, relación con el entorno y evolución emocional o social cuando proceda
+- un párrafo final de cierre con valoración general y línea de acompañamiento educativo
 
-Si el estilo es "Breve", redacta una versión más concisa.
-Si el estilo es "Formal", usa un tono más institucional.
-Si el estilo es "Cercano", usa un tono más cálido sin perder profesionalidad.
+Adaptación por estilo:
+- "Breve": más conciso
+- "Formal": más institucional
+- "Cercano": más cálido sin perder profesionalidad
 
 Si modoPremium está activado:
-- redacta con un nivel de calidad superior
-- utiliza una redacción más rica, matizada y elegante
-- aumenta la cohesión entre párrafos
-- aporta más profundidad pedagógica
-- haz que el resultado sea excelente, no solo correcto
+- aumenta la calidad de la redacción
+- mejora cohesión y matices
+- aporta una redacción excelente, no solo correcta
 
-El resultado debe poder copiarse directamente en un informe oficial de escuela infantil de alto nivel.
+Devuelve únicamente el informe final en texto limpio.
           `.trim(),
         },
         {
@@ -294,8 +277,6 @@ El resultado debe poder copiarse directamente en un informe oficial de escuela i
     if (!informe) {
       return crearErrorRespuesta(res, 502, "La IA no devolvió un informe válido.");
     }
-
-    console.log("INFORME LIMPIO:\n", informe);
 
     res.json({ ok: true, informe });
   } catch (error) {
