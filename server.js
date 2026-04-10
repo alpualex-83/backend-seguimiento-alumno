@@ -229,7 +229,6 @@ ${construirTextoParaIA(datosAlumno)}
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
-      timeout: 45000,
       messages: [
         {
           role: "system",
@@ -326,7 +325,6 @@ app.post("/mejorar-informe", async (req, res) => {
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.5,
-      timeout: 45000,
       messages: [
         {
           role: "system",
