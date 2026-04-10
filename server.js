@@ -305,37 +305,40 @@ app.post("/mejorar-informe", async (req, res) => {
 
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      temperature: 0.5,
+      temperature: 0.35,
       messages: [
         {
           role: "system",
           content: `
 Eres un educador experto en escuela infantil.
 
-Tu tarea es mejorar la redacción de un informe ya existente.
+Tu tarea es mejorar la redacción de un informe ya escrito.
 
 Normas obligatorias:
-- no cambies el contenido pedagógico
 - no inventes información nueva
-- no elimines datos relevantes ya presentes
-- conserva el enfoque pedagógico y el tono del texto original
-- mantén el sentido original del informe
-- mejora fluidez, elegancia y coherencia
-- elimina repeticiones
-- hazlo más natural y humano
-- tono profesional de centro educativo premium
-- no usar markdown
-- no usar asteriscos
-- solo texto limpio en párrafos
-- adapta el estilo según: ${estilo}
+- no elimines contenido pedagógico relevante
+- no cambies el sentido del texto
+- mantén intactos los hechos y observaciones ya presentes
+- mejora claridad, fluidez, cohesión y elegancia
+- elimina repeticiones y giros poco naturales
+- conserva un tono profesional, humano y propio de un centro educativo de nivel alto
+- no uses markdown
+- no uses listas
+- no uses títulos
+- devuelve solo texto limpio en párrafos
 
-El resultado debe parecer escrito por un educador con experiencia.
+Adaptación por estilo:
+- "Breve": más directo y compacto
+- "Formal": más institucional
+- "Cercano": más cálido sin perder profesionalidad
+
+El texto final debe parecer escrito por un educador con experiencia real.
           `.trim(),
         },
         {
           role: "user",
           content: `
-Mejora este informe sin cambiar su contenido:
+Mejora este informe sin alterar su contenido esencial:
 
 ${texto}
           `.trim(),
