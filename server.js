@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const OpenAI = require("openai");
+const admin = require("firebase-admin");
 const { Document, Packer, Paragraph, TextRun } = require("docx");
 const PptxGenJS = require("pptxgenjs");
 
@@ -23,6 +24,120 @@ if (!process.env.OPENAI_API_KEY) {
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+/* ------------------------------------------------------------------ */
+/* Autenticación                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Inicializa Firebase Admin para poder verificar los tokens que envía la app.
+ * La credencial se lee de FIREBASE_SERVICE_ACCOUNT, que admite el JSON de la
+ * cuenta de servicio tal cual o codificado en base64.
+ */
+const inicializarFirebaseAdmin = () => {
+  const bruto = process.env.FIREBASE_SERVICE_ACCOUNT;
+
+  if (!bruto) {
+    throw new Error(
+      "Falta FIREBASE_SERVICE_ACCOUNT en variables de entorno. " +
+        "Sin ella no se pueden verificar los usuarios y el backend quedaría abierto."
+    );
+  }
+
+  const texto = bruto.trim().startsWith("{")
+    ? bruto
+    : Buffer.from(bruto, "base64").toString("utf8");
+
+  const credenciales = JSON.parse(texto);
+
+  admin.initializeApp({
+    credential: admin.credential.cert(credenciales),
+  });
+};
+
+inicializarFirebaseAdmin();
+
+/**
+ * Exige un token de Firebase válido. La app lo envía en la cabecera
+ * Authorization. Sin esto, cualquiera con la URL podía gastar el crédito
+ * de OpenAI.
+ */
+const exigirAutenticacion = async (req, res, next) => {
+  const cabecera = req.headers.authorization || "";
+  const token = cabecera.startsWith("Bearer ") ? cabecera.slice(7).trim() : "";
+
+  if (!token) {
+    return crearErrorRespuesta(
+      res,
+      401,
+      "Tu sesión no es válida. Cierra sesión y vuelve a entrar."
+    );
+  }
+
+  try {
+    const decodificado = await admin.auth().verifyIdToken(token);
+    req.usuario = { uid: decodificado.uid, email: decodificado.email };
+    next();
+  } catch (error) {
+    console.log("Token rechazado:", error?.code || error?.message);
+    return crearErrorRespuesta(
+      res,
+      401,
+      "Tu sesión ha caducado. Cierra sesión y vuelve a entrar."
+    );
+  }
+};
+
+/* ------------------------------------------------------------------ */
+/* Límite de uso por usuario                                           */
+/* ------------------------------------------------------------------ */
+
+const VENTANA_LIMITE_MS = 60 * 60 * 1000; // 1 hora
+const MAX_PETICIONES_POR_VENTANA = 60;
+
+const usoPorUsuario = new Map();
+
+// Limpieza periódica para que el mapa no crezca sin control.
+setInterval(() => {
+  const ahora = Date.now();
+  for (const [uid, registro] of usoPorUsuario.entries()) {
+    if (ahora - registro.inicio > VENTANA_LIMITE_MS) {
+      usoPorUsuario.delete(uid);
+    }
+  }
+}, VENTANA_LIMITE_MS).unref();
+
+/**
+ * Evita que una cuenta (propia o robada) dispare miles de llamadas a OpenAI.
+ * 60 informes por hora es muy holgado para una maestra y muy poco para un abuso.
+ */
+const limitarUso = (req, res, next) => {
+  const uid = req.usuario?.uid;
+  if (!uid) return next();
+
+  const ahora = Date.now();
+  const registro = usoPorUsuario.get(uid);
+
+  if (!registro || ahora - registro.inicio > VENTANA_LIMITE_MS) {
+    usoPorUsuario.set(uid, { inicio: ahora, peticiones: 1 });
+    return next();
+  }
+
+  registro.peticiones += 1;
+
+  if (registro.peticiones > MAX_PETICIONES_POR_VENTANA) {
+    console.log(`Límite alcanzado para el usuario ${uid}`);
+    return crearErrorRespuesta(
+      res,
+      429,
+      "Has generado muchos informes seguidos. Espera unos minutos e inténtalo de nuevo."
+    );
+  }
+
+  next();
+};
+
+const rutaProtegida = [exigirAutenticacion, limitarUso];
 
 const limpiarInforme = (texto) => {
   return String(texto || "")
@@ -184,7 +299,7 @@ app.get("/privacy", (req, res) => {
   `);
 });
 
-app.post("/generar-informe", async (req, res) => {
+app.post("/generar-informe", ...rutaProtegida, async (req, res) => {
   try {
     const datosAlumno = req.body;
 
@@ -229,6 +344,13 @@ Integra con naturalidad:
 - anotaciones con fecha
 - matices evolutivos
 - tono profesional y humano
+
+Las anotaciones llevan la fecha en la que el educador las escribió y están
+ordenadas de la más antigua a la más reciente. Respeta ese orden al redactar:
+describe primero el punto de partida y después cómo fue evolucionando, de forma
+que el informe refleje el recorrido del trimestre. Si dos anotaciones sobre lo
+mismo se contradicen, la más reciente describe la situación actual y la anterior
+sirve para mostrar el avance.
 
 ${
   datosAlumno.historial
@@ -340,7 +462,7 @@ El resultado debe poder copiarse directamente en un informe oficial de escuela i
   }
 });
 
-app.post("/mejorar-informe", async (req, res) => {
+app.post("/mejorar-informe", ...rutaProtegida, async (req, res) => {
   try {
     const { texto, estilo } = req.body;
 
@@ -416,7 +538,7 @@ ${texto}
   }
 });
 
-app.post("/exportar-docx", async (req, res) => {
+app.post("/exportar-docx", ...rutaProtegida, async (req, res) => {
   try {
     const alumno = asegurarTexto(req.body.alumno);
     const trimestre = asegurarTexto(req.body.trimestre);
@@ -495,7 +617,7 @@ app.post("/exportar-docx", async (req, res) => {
   }
 });
 
-app.post("/exportar-pptx", async (req, res) => {
+app.post("/exportar-pptx", ...rutaProtegida, async (req, res) => {
   try {
     const alumno = asegurarTexto(req.body.alumno);
     const trimestre = asegurarTexto(req.body.trimestre);
