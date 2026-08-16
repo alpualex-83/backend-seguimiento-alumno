@@ -427,14 +427,36 @@ Normas obligatorias:
 - no copies literalmente los ítems curriculares
 - interpreta pedagógicamente la información y conviértela en lenguaje de informe real
 
+Rigor: esto es un documento que leerá la familia y que forma parte del
+expediente del niño. Por encima del estilo está la veracidad.
+- Escribe únicamente a partir de la información que te dan. No inventes
+  situaciones, anécdotas, frases del niño, nombres de compañeros ni fechas.
+- Si hay poca información, redacta un informe más corto. Nunca rellenes con
+  frases genéricas que valdrían para cualquier niño.
+- No emitas diagnósticos ni uses etiquetas clínicas (retraso, déficit,
+  trastorno, hiperactividad, inmadurez). Describe conductas observadas.
+- No compares con otros niños, ni con la media del aula, ni con lo "esperable
+  para su edad".
+- Lo que aún no está conseguido se cuenta como recorrido, no como carencia:
+  "va afianzando", "lo va logrando con acompañamiento", "está en camino de".
+- No atribuyas causas a la familia ni al entorno si no aparecen en las
+  observaciones, y no hagas pronósticos sobre el futuro del niño.
+- Si un dato falta, omítelo en silencio: no escribas "no se dispone de
+  información" ni menciones que faltan datos.
+
 Estructura del texto:
 - un primer párrafo breve de apertura sobre la evolución general del trimestre
 - varios párrafos de desarrollo, cohesionados y fluidos, integrando las distintas áreas de aprendizaje con naturalidad
 - un último párrafo de cierre con valoración global y línea de acompañamiento educativo
+- no cierres con fórmulas hechas del tipo "en definitiva" o "en resumen"
 
-Si el estilo es "Breve", redacta una versión más concisa.
-Si el estilo es "Formal", usa un tono más institucional.
-Si el estilo es "Cercano", usa un tono más cálido sin perder profesionalidad.
+Extensión y registro según el estilo:
+- "Cercano": entre cuatro y seis párrafos, tono cálido y próximo a la familia,
+  sin perder profesionalidad.
+- "Formal": entre cuatro y seis párrafos, registro institucional, propio de un
+  documento oficial de centro.
+- "Breve": dos o tres párrafos. Conserva lo esencial de la evolución y quita el
+  desarrollo secundario; que sea corto, no incompleto.
 
 Si modoPremium está activado:
 - redacta con un nivel de calidad superior
@@ -512,6 +534,19 @@ Normas obligatorias:
 - no usar asteriscos
 - solo texto limpio en párrafos
 - adapta el estilo según: ${estilo}
+
+Además, al reescribir corrige estas cosas si aparecen en el original:
+- referencias al alumno por apellidos: deja solo el nombre de pila
+- cualquier marca de género, tanto en sustantivos ("el niño", "la alumna")
+  como en adjetivos y participios ("contento", "tranquila", "autónomo").
+  Sustitúyelos por fórmulas sin género: "muestra autonomía", "disfruta",
+  "mantiene la calma". Esta corrección es obligatoria y debes repasar el texto
+  entero antes de devolverlo.
+- etiquetas clínicas o diagnósticos (retraso, déficit, trastorno, inmadurez):
+  reescríbelos como conductas observadas
+- comparaciones con otros niños o con lo "esperable para su edad": quítalas
+- lo no conseguido formulado como carencia: pásalo a recorrido
+  ("va afianzando", "lo va logrando con acompañamiento")
 
 El resultado debe parecer escrito por un educador con experiencia.
           `.trim(),
