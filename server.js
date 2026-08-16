@@ -167,13 +167,9 @@ const crearErrorRespuesta = (res, status, mensaje) => {
 };
 
 const construirTextoParaIA = (datos) => {
+  // Solo el nombre de pila: los informes no llevan apellidos ni distinguen
+  // entre niño y niña, porque para las educadoras es indiferente.
   const nombre = asegurarTexto(datos?.nombre);
-  const apellidos = asegurarTexto(datos?.apellidos);
-  const nombreCompleto =
-    asegurarTexto(datos?.nombreCompleto) ||
-    [nombre, apellidos].filter(Boolean).join(" ").trim();
-
-  const genero = asegurarTexto(datos?.genero);
   const fechaNacimiento = asegurarTexto(datos?.fechaNacimiento);
   const cursoAula = asegurarTexto(datos?.cursoAula);
   const observacionesGenerales = asegurarTexto(datos?.observacionesGenerales);
@@ -182,8 +178,6 @@ const construirTextoParaIA = (datos) => {
   const estiloInforme = asegurarTexto(datos?.estiloInforme);
 
   let texto = `Alumno: ${nombre}
-Nombre completo: ${nombreCompleto}
-Género: ${genero}
 Fecha de nacimiento: ${fechaNacimiento || "No indicada"}
 Curso / aula: ${cursoAula || "No indicado"}
 Trimestre: ${trimestre}
@@ -345,6 +339,22 @@ Integra con naturalidad:
 - matices evolutivos
 - tono profesional y humano
 
+Cómo referirte al alumno:
+- Usa siempre su nombre de pila. Nunca escribas apellidos.
+- No indiques si es niño o niña, ni con sustantivos ("el niño", "la alumna")
+  ni con adjetivos o participios con marca de género.
+- Redacta con fórmulas que no marquen género. Convierte los adjetivos en
+  sustantivos o en verbos:
+  "está contento" -> "disfruta" o "se le ve a gusto"
+  "es autónomo" -> "muestra autonomía"
+  "está muy participativo" -> "participa con ganas"
+  "se muestra tranquilo" -> "mantiene la calma" o "transmite tranquilidad"
+  "ha sido muy trabajador" -> "ha mostrado mucho esfuerzo"
+- Alterna el nombre con el sujeto elíptico para que no resulte repetitivo:
+  "Marcos reconoce sus emociones. Este trimestre ha ampliado su vocabulario."
+- Esta regla es obligatoria: una sola palabra con marca de género invalida el
+  informe. Antes de terminar, repásalo y sustituye las que se hayan colado.
+
 Las anotaciones llevan la fecha en la que el educador las escribió y están
 ordenadas de la más antigua a la más reciente. Respeta ese orden al redactar:
 describe primero el punto de partida y después cómo fue evolucionando, de forma
@@ -396,6 +406,10 @@ Tu tarea es redactar informes trimestrales con calidad profesional real.
 
 Normas obligatorias:
 - escribe en español de España
+- refiérete al alumno por su nombre de pila, nunca por sus apellidos
+- no marques el género: ni "el niño" o "la niña", ni adjetivos o participios
+  con género ("contento", "tranquila", "autónomo"). Usa sustantivos y verbos
+  en su lugar ("muestra autonomía", "disfruta", "mantiene la calma")
 - usa un tono humano, natural, elegante y profesional
 - el texto debe sonar a educador con experiencia, nunca a máquina
 - evita expresiones repetitivas y conectores forzados
