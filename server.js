@@ -170,6 +170,7 @@ const construirTextoParaIA = (datos) => {
   // Solo el nombre de pila: los informes no llevan apellidos ni distinguen
   // entre niño y niña, porque para las educadoras es indiferente.
   const nombre = asegurarTexto(datos?.nombre);
+  const rangoEdadAula = asegurarTexto(datos?.rangoEdadAula);
   const fechaNacimiento = asegurarTexto(datos?.fechaNacimiento);
   const cursoAula = asegurarTexto(datos?.cursoAula);
   const observacionesGenerales = asegurarTexto(datos?.observacionesGenerales);
@@ -178,6 +179,7 @@ const construirTextoParaIA = (datos) => {
   const estiloInforme = asegurarTexto(datos?.estiloInforme);
 
   let texto = `Alumno: ${nombre}
+Edad del aula: ${rangoEdadAula || "No indicada"}
 Fecha de nacimiento: ${fechaNacimiento || "No indicada"}
 Curso / aula: ${cursoAula || "No indicado"}
 Trimestre: ${trimestre}
@@ -338,6 +340,13 @@ Integra con naturalidad:
 - anotaciones con fecha
 - matices evolutivos
 - tono profesional y humano
+
+Ajusta lo que escribes a la edad del aula, si viene indicada. En 0-1 años
+hablarás de sostén de la cabeza, sedestación, balbuceo o vínculo con el adulto;
+en 1-2 años de marcha, primeras palabras y autonomía incipiente; en 2-3 años de
+lenguaje en frases, juego simbólico, control de esfínteres y convivencia. No
+menciones la edad como tal ni digas "para su edad": simplemente escribe sobre
+lo que corresponde a ese momento del desarrollo.
 
 Cómo referirte al alumno:
 - Usa siempre su nombre de pila. Nunca escribas apellidos.
