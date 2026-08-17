@@ -266,33 +266,280 @@ app.get("/health", (req, res) => {
   });
 });
 
+const POLITICA_PRIVACIDAD_HTML = `<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Política de privacidad · Diario de Aula</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+        line-height: 1.65;
+        color: #0f172a;
+      }
+      h1 { font-size: 30px; margin-bottom: 4px; }
+      h2 { font-size: 20px; margin-top: 34px; }
+      .fecha { color: #64748b; font-size: 14px; margin-bottom: 28px; }
+      .aviso {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 16px;
+        margin: 24px 0;
+      }
+      table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+      th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; font-size: 15px; vertical-align: top; }
+      th { background: #f1f5f9; }
+      footer { margin-top: 48px; border-top: 1px solid #cbd5e1; padding-top: 20px; color: #64748b; font-size: 14px; }
+      a { color: #1d4ed8; }
+    </style>
+  </head>
+  <body>
+    <h1>Política de privacidad</h1>
+    <p class="fecha">Diario de Aula · Última actualización: 17 de agosto de 2026</p>
+
+    <p>
+      Diario de Aula es una aplicación dirigida a profesionales de la educación
+      infantil para el seguimiento educativo de su alumnado y la elaboración de
+      informes trimestrales. Esta política explica qué datos se tratan, con qué
+      finalidad y qué derechos existen sobre ellos.
+    </p>
+
+    <div class="aviso">
+      <strong>Quién es responsable de los datos.</strong> La maestra o el centro
+      educativo que usa la aplicación es el responsable del tratamiento de los
+      datos del alumnado que introduce. Diario de Aula actúa como encargado del
+      tratamiento: proporciona la herramienta y almacena la información por
+      cuenta de quien la introduce, siguiendo sus instrucciones.
+    </div>
+
+    <h2>Qué datos se tratan</h2>
+    <table>
+      <tr>
+        <th>Dato</th><th>Para qué</th><th>Quién lo introduce</th>
+      </tr>
+      <tr>
+        <td>Correo electrónico y contraseña</td>
+        <td>Crear la cuenta e iniciar sesión</td>
+        <td>La persona usuaria</td>
+      </tr>
+      <tr>
+        <td>Nombre y apellidos del alumnado, fecha de nacimiento, aula</td>
+        <td>Identificar a cada alumno en el seguimiento y en sus informes</td>
+        <td>La persona usuaria</td>
+      </tr>
+      <tr>
+        <td>Observaciones, valoraciones y anotaciones con fecha</td>
+        <td>Registrar la evolución del alumnado y redactar los informes</td>
+        <td>La persona usuaria</td>
+      </tr>
+      <tr>
+        <td>Datos del aula y del centro, agenda de reuniones</td>
+        <td>Organizar el trabajo y ajustar la redacción de los informes</td>
+        <td>La persona usuaria</td>
+      </tr>
+    </table>
+
+    <p>
+      La aplicación no recoge datos directamente de los niños ni de sus familias:
+      toda la información la escribe la persona docente. No se usan cookies de
+      seguimiento, no hay publicidad y no se hace perfilado.
+    </p>
+
+    <h2>Quién trata los datos por nuestra cuenta</h2>
+    <p>
+      Para prestar el servicio recurrimos a los siguientes proveedores, que
+      actúan como subencargados del tratamiento:
+    </p>
+    <table>
+      <tr><th>Proveedor</th><th>Para qué</th><th>Dónde</th></tr>
+      <tr>
+        <td>Google Firebase (Google Ireland Ltd.)</td>
+        <td>Autenticación de las cuentas y almacenamiento de los datos</td>
+        <td>Unión Europea (Madrid)</td>
+      </tr>
+      <tr>
+        <td>OpenAI, L.L.C.</td>
+        <td>
+          Redacción de los borradores de informe. Se le envía el texto que la
+          maestra ha anotado, junto con el nombre de pila del alumno
+          <strong>sin apellidos</strong>. No se usa para entrenar sus modelos.
+        </td>
+        <td>Estados Unidos, con cláusulas contractuales tipo</td>
+      </tr>
+      <tr>
+        <td>Render, Inc.</td>
+        <td>Alojamiento del servidor que genera los informes</td>
+        <td>Estados Unidos, con cláusulas contractuales tipo</td>
+      </tr>
+    </table>
+
+    <p>
+      No vendemos datos personales ni los cedemos a terceros con fines
+      comerciales.
+    </p>
+
+    <h2>Cuánto tiempo se conservan</h2>
+    <p>
+      Los datos permanecen mientras la cuenta esté activa. Desde la propia
+      aplicación, en <em>Mi cuenta → Eliminar mi cuenta</em>, se pueden borrar de
+      forma permanente la cuenta y todos los datos del alumnado asociados. El
+      borrado es inmediato e irreversible, así que conviene exportar antes los
+      informes que se quieran conservar.
+    </p>
+
+    <h2>Dónde se guardan</h2>
+    <p>
+      Los datos se almacenan en el dispositivo y en Google Firestore, en la
+      región de Madrid (Unión Europea). Cada cuenta solo puede acceder a sus
+      propios datos: las reglas de seguridad impiden que una persona usuaria vea
+      la información de otra.
+    </p>
+
+    <h2>Derechos</h2>
+    <p>
+      Cualquier persona puede ejercer sus derechos de acceso, rectificación,
+      supresión, limitación, portabilidad y oposición escribiendo a
+      <a href="mailto:app@diarioaula.com">app@diarioaula.com</a>. Si el dato se
+      refiere a un menor, la solicitud debe dirigirse en primer lugar al centro
+      educativo, que es el responsable del tratamiento. También existe el derecho
+      a reclamar ante la Agencia Española de Protección de Datos
+      (<a href="https://www.aepd.es">aepd.es</a>).
+    </p>
+
+    <h2>Menores</h2>
+    <p>
+      La aplicación está destinada exclusivamente a personas adultas que trabajan
+      en educación infantil. Los menores no crean cuentas ni usan la aplicación.
+      Los datos del alumnado los introduce la persona docente en el ejercicio de
+      su función educativa, y corresponde al centro informar a las familias y
+      contar con la base legal adecuada.
+    </p>
+
+    <h2>Cambios en esta política</h2>
+    <p>
+      Si esta política cambia, se actualizará esta página y se indicará la fecha
+      de la última modificación.
+    </p>
+
+    <footer>
+      Contacto: <a href="mailto:app@diarioaula.com">app@diarioaula.com</a><br />
+      <a href="/privacy?lang=en">Read this policy in English</a>
+    </footer>
+  </body>
+</html>`;
+
+const POLITICA_PRIVACIDAD_HTML_EN = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy · Diario de Aula</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        max-width: 760px; margin: 0 auto; padding: 40px 20px 80px;
+        line-height: 1.65; color: #0f172a;
+      }
+      h1 { font-size: 30px; margin-bottom: 4px; }
+      h2 { font-size: 20px; margin-top: 34px; }
+      .fecha { color: #64748b; font-size: 14px; margin-bottom: 28px; }
+      table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+      th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; font-size: 15px; vertical-align: top; }
+      th { background: #f1f5f9; }
+      footer { margin-top: 48px; border-top: 1px solid #cbd5e1; padding-top: 20px; color: #64748b; font-size: 14px; }
+      a { color: #1d4ed8; }
+    </style>
+  </head>
+  <body>
+    <h1>Privacy Policy</h1>
+    <p class="fecha">Diario de Aula · Last updated: 17 August 2026</p>
+
+    <p>
+      Diario de Aula is an application for early-childhood education
+      professionals to track their pupils' development and write termly reports.
+      This policy explains what data is processed, why, and what rights apply.
+    </p>
+
+    <p>
+      <strong>Who controls the data.</strong> The teacher or school using the app
+      is the data controller for the pupil information they enter. Diario de Aula
+      acts as a data processor: it provides the tool and stores the information
+      on their behalf and under their instructions.
+    </p>
+
+    <h2>What data is processed</h2>
+    <table>
+      <tr><th>Data</th><th>Purpose</th></tr>
+      <tr><td>Email address and password</td><td>Account creation and sign-in</td></tr>
+      <tr><td>Pupil first name and surname, date of birth, classroom</td><td>Identifying each pupil in their tracking and reports</td></tr>
+      <tr><td>Observations, assessments and dated notes</td><td>Recording development and drafting reports</td></tr>
+      <tr><td>Classroom and school details, meetings diary</td><td>Organising work and tailoring report wording</td></tr>
+    </table>
+
+    <p>
+      The app does not collect data directly from children or families: all
+      information is written by the teacher. There are no tracking cookies, no
+      advertising and no profiling.
+    </p>
+
+    <h2>Processors</h2>
+    <table>
+      <tr><th>Provider</th><th>Purpose</th><th>Location</th></tr>
+      <tr><td>Google Firebase (Google Ireland Ltd.)</td><td>Authentication and data storage</td><td>European Union (Madrid)</td></tr>
+      <tr><td>OpenAI, L.L.C.</td><td>Drafting reports. It receives the notes written by the teacher and the pupil's first name <strong>without surnames</strong>. Not used to train their models.</td><td>United States, under standard contractual clauses</td></tr>
+      <tr><td>Render, Inc.</td><td>Hosting the report-generation server</td><td>United States, under standard contractual clauses</td></tr>
+    </table>
+
+    <p>We do not sell personal data or share it for commercial purposes.</p>
+
+    <h2>Retention and deletion</h2>
+    <p>
+      Data is kept while the account is active. From <em>My account → Delete my
+      account</em> inside the app, the account and all associated pupil data can
+      be permanently deleted. Deletion is immediate and irreversible, so export
+      any reports you wish to keep beforehand.
+    </p>
+
+    <h2>Where data is stored</h2>
+    <p>
+      Data is stored on the device and in Google Firestore, in the Madrid region
+      (European Union). Security rules ensure each account can only access its
+      own data.
+    </p>
+
+    <h2>Your rights</h2>
+    <p>
+      To exercise rights of access, rectification, erasure, restriction,
+      portability or objection, write to
+      <a href="mailto:app@diarioaula.com">app@diarioaula.com</a>. Requests
+      concerning a child should first be addressed to the school, which is the
+      data controller. Complaints may also be filed with the Spanish Data
+      Protection Agency (<a href="https://www.aepd.es">aepd.es</a>).
+    </p>
+
+    <h2>Children</h2>
+    <p>
+      The app is intended solely for adults working in early-childhood
+      education. Children do not create accounts or use the app.
+    </p>
+
+    <footer>
+      Contact: <a href="mailto:app@diarioaula.com">app@diarioaula.com</a><br />
+      <a href="/privacy">Leer esta política en español</a>
+    </footer>
+  </body>
+</html>`;
+
 app.get("/privacy", (req, res) => {
-  res.send(`
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>Privacy Policy</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-            line-height: 1.6;
-            color: #111827;
-          }
-          h1 { font-size: 28px; }
-          h2 { font-size: 20px; margin-top: 24px; }
-        </style>
-      </head>
-      <body>
-        <h1>Privacy Policy</h1>
-        <p>This app collects user account data only for authentication and app functionality.</p>
-        <p>No personal data is shared with third parties.</p>
-        <p>Data is used exclusively to allow login, storage and educational tracking features inside the app.</p>
-      </body>
-    </html>
-  `);
+  const enIngles = String(req.query.lang || "").toLowerCase() === "en";
+  res.type("html").send(
+    enIngles ? POLITICA_PRIVACIDAD_HTML_EN : POLITICA_PRIVACIDAD_HTML
+  );
 });
 
 app.post("/generar-informe", ...rutaProtegida, async (req, res) => {
